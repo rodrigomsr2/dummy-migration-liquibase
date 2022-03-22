@@ -1,0 +1,819 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext
+   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+   http://www.liquibase.org/xml/ns/dbchangelog
+   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet author="rodrigo_rmsouza" id="202203151606" >
+        <comment>Criação das sequences</comment>
+        <sql>
+            create sequence apontamento_producao_rascunho_id_seq
+            as integer;
+
+            alter sequence apontamento_producao_rascunho_id_seq owner to postgres;
+
+            create sequence http_chave_id_seq
+            as integer;
+
+            alter sequence http_chave_id_seq owner to postgres;
+
+            create sequence http_server_id_seq
+            as integer;
+
+            alter sequence http_server_id_seq owner to postgres;
+
+            create sequence http_transacao_id_seq
+            as integer;
+
+            alter sequence http_transacao_id_seq owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151607">
+        <comment>Criação da tabela de_para</comment>
+        <sql>
+            create table de_para
+            (
+            id   serial,
+            de   varchar(10) not null,
+            para varchar(1)  not null,
+            tipo varchar(30) not null
+            );
+
+            alter table de_para
+            owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151608">
+        <comment>Criação da tabela remuneracao_contratado</comment>
+        <sql>
+            create table remuneracao_contratado
+            (
+            id                 serial
+            constraint valor_hora_id_pk
+            primary key,
+            inquilino          varchar(50)             not null,
+            folha              integer                 not null,
+            contratado         integer                 not null,
+            valor_hora         numeric(10, 5),
+            remuneracao_base   numeric(10, 5),
+            mes_vigencia       integer                 not null,
+            ano_vigencia       integer                 not null,
+            criado_por         varchar(50)             not null,
+            data_criacao       timestamp default now() not null,
+            horista_mensalista integer
+            );
+
+            alter table remuneracao_contratado
+            owner to postgres;
+
+            create unique index remuneracao_contratado_id_uindex
+            on remuneracao_contratado (id);
+
+            create unique index remuneracao_contratado_uindex
+            on remuneracao_contratado (inquilino, folha, contratado, ano_vigencia, mes_vigencia, data_criacao);
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151609">
+        <comment>Criação da tabela apontamento_producao_parametrizacao_tipo</comment>
+        <sql>
+            create table apontamento_producao_parametrizacao_tipo
+            (
+            id   serial
+            constraint apontamento_producao_parametrizacao_tipo_id_pk
+            primary key,
+            tipo varchar(15) not null
+            );
+
+            alter table apontamento_producao_parametrizacao_tipo
+            owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151610">
+        <comment>Criação da tabela apontamento_producao_parametrizacao</comment>
+        <sql>
+            create table apontamento_producao_parametrizacao
+            (
+            id                                 serial
+            primary key,
+            id_folha                           integer                 not null,
+            nome                               varchar(200)            not null,
+            mes_vigencia                       integer                 not null,
+            ano_vigencia                       integer                 not null,
+            adiantamento_auto                  boolean   default false not null,
+            adiantamento_auto_valor            numeric(18, 2),
+            ajuda_custo_auto                   boolean   default false not null,
+            ajuda_custo_valor                  numeric(18, 2),
+            atual_comp_ap                      boolean   default false not null,
+            atual_comp_ap_qtd_dias             integer,
+            apresentar_coop_afast              boolean   default false not null,
+            apresentar_coop_afast_competencias integer,
+            mensa_propor_remu_admissao         boolean   default false not null,
+            horis_propor_remu_admissao         boolean   default false not null,
+            realiza_mult_requi_mens            boolean   default false not null,
+            data                               timestamp default now() not null,
+            inquilino                          varchar(50)             not null,
+            base_hora                          numeric(11, 5),
+            exibe_param_apontamento            boolean   default false,
+            adiantamento_auto_id_tipo          integer   default 1
+            constraint apontamento_producao_parametrizacao_id_fk
+            references apontamento_producao_parametrizacao_tipo,
+            ajuda_custo_id_tipo                integer   default 1
+            constraint ajuda_custo_id_tipo_id_fk
+            references apontamento_producao_parametrizacao_tipo,
+            email_alerta                       varchar,
+            alerta_pedido_sup_inf              boolean   default false,
+            alerta_pedido_sup_inf_valor        numeric,
+            email_alerta_adm                   varchar
+            );
+
+            alter table apontamento_producao_parametrizacao
+            owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151611">
+        <comment>Criação da tabela requisicao_status</comment>
+        <sql>
+            create table requisicao_status
+            (
+            id     integer not null
+            primary key,
+            status varchar not null
+            );
+
+            alter table requisicao_status
+            owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151612">
+        <comment>Criação da tabela requisicao_tipo</comment>
+        <sql>
+            create table requisicao_tipo
+            (
+            id   varchar(1)   not null
+            primary key,
+            tipo varchar(100) not null
+            );
+
+            alter table requisicao_tipo
+            owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151613">
+        <comment>Criação da tabela requisicao</comment>
+        <sql>
+            create table requisicao
+            (
+            id             serial
+            constraint requisicao_id_pk
+            primary key,
+            inquilino      varchar(50)                         not null,
+            folha          integer                             not null,
+            competencia    date                                not null,
+            tipo           varchar(1)                          not null
+            constraint requisicao_requisicao_tipo_id_fk
+            references requisicao_tipo,
+            status         integer   default 0                 not null
+            constraint requisicao_requisicao_status_id_fk
+            references requisicao_status,
+            data           timestamp default CURRENT_TIMESTAMP not null,
+            data_pagamento date,
+            observacao     varchar,
+            data_limite    timestamp,
+            data_prevista  date,
+            descricao      varchar(250)
+            );
+
+            alter table requisicao
+            owner to postgres;
+
+            create unique index requisicao_id_uindex
+            on requisicao (id);
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151614">
+        <comment>Criação da tabela requisicao_adiantamento</comment>
+        <sql>
+            create table requisicao_adiantamento
+            (
+            id           serial
+            primary key,
+            requisicao   integer        not null
+            constraint requisicao_mensal_requisicao_fk
+            references requisicao,
+            contratado   integer        not null,
+            variavel     numeric(11, 5) not null,
+            ajuda_custo  numeric(11, 5) not null,
+            reembolso    numeric(11, 5) not null,
+            adiantamento numeric(11, 5) not null
+            );
+
+            alter table requisicao_adiantamento
+            owner to postgres;
+
+            create unique index requisicao_adiantamento_contratado_uindex
+            on requisicao_adiantamento (requisicao, contratado);
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151615">
+        <comment>Criação da tabela requisicao_mensal</comment>
+        <sql>
+            create table requisicao_mensal
+            (
+            id                 serial
+            primary key,
+            requisicao         integer        not null
+            constraint requisicao_mensal_requisicao_fk
+            references requisicao,
+            contratado         integer        not null,
+            dias_trabalhados   numeric(11, 5) not null,
+            base_hora          numeric(11, 5) not null,
+            valor_hora         numeric(11, 5) not null,
+            producao           numeric(11, 5) not null,
+            variavel           numeric(11, 5) not null,
+            ajuda_custo        numeric(11, 5) not null,
+            reembolso          numeric(11, 5) not null,
+            total_rendimentos  numeric(11, 5) not null,
+            descontos_diversos numeric(11, 5) not null,
+            adiantamento       numeric(11, 5) not null,
+            total_debitos      numeric(11, 5) not null,
+            liquido            numeric(11, 5) not null,
+            horista_mensalista integer        not null
+            );
+
+            alter table requisicao_mensal
+            owner to postgres;
+
+            create unique index requisicao_mensal_contratado_uindex
+            on requisicao_mensal (requisicao, contratado);
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151616">
+        <comment>Criação da function fnc_buscar_adiantamentos_por_competencia</comment>
+        <sql>
+            create function fnc_buscar_adiantamentos_por_competencia(idinquilino character varying, idfolha integer, data_competencia date, apenaspagos boolean) returns SETOF requisicao_adiantamento
+            language sql
+            as
+            $$
+            select null::integer as id,
+            null::integer as requisicao,
+            contratado,
+            sum(variavel) as variavel,
+            sum(ajuda_custo) ajuda_custo,
+            sum(reembolso) reembolso,
+            sum(adiantamento) adiantamento
+            from requisicao
+            join requisicao_adiantamento ra on requisicao.id = ra.requisicao
+            where inquilino = idinquilino and folha = idfolha and
+            competencia = data_competencia
+            and (not apenasPagos or data_pagamento is not null)
+            group by contratado
+            $$;
+
+            alter function fnc_buscar_adiantamentos_por_competencia(varchar, integer, date, boolean) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151617">
+        <comment>Criação da function fnc_buscar_de_para</comment>
+        <createProcedure>
+            create function fnc_buscar_de_para(character varying) returns SETOF de_para
+            language sql
+            as
+            $$
+            select * from de_para dp where (dp.tipo = $1 or $1 is null);
+            $$;
+
+            alter function fnc_buscar_de_para(varchar) owner to postgres;
+        </createProcedure>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151618">
+        <comment>Criação da function fnc_buscar_mensais_pagas_por_competencia</comment>
+        <sql>
+            <![CDATA[
+            create function fnc_buscar_mensais_pagas_por_competencia(idinquilino character varying, idfolha integer, data_competencia date) returns SETOF requisicao_mensal
+            language sql
+            as
+            $$
+            select mensal.*
+            from requisicao
+            join requisicao_mensal mensal on requisicao.id = mensal.requisicao
+            where inquilino = idinquilino and folha = idfolha and
+            competencia = data_competencia
+            and data_pagamento is not null
+            and producao <> 0.00
+            $$;
+            ]]>
+
+            alter function fnc_buscar_mensais_pagas_por_competencia(varchar, integer, date) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151619">
+        <comment>Criação da function fnc_buscar_parametrizacao</comment>
+        <sql>
+            create function fnc_buscar_parametrizacao(idfolha integer, competencia date) returns SETOF apontamento_producao_parametrizacao
+            language sql
+            as
+            $$
+            select *
+            from apontamento_producao_parametrizacao
+            where
+            id_folha = idfolha
+            and ano_vigencia = extract(year from competencia)
+            and mes_vigencia = extract(month from competencia)
+            $$;
+
+            alter function fnc_buscar_parametrizacao(integer, date) owner to postgres;
+
+            create function fnc_buscar_parametrizacao(idinquilino character varying, idfolha integer, competencia date) returns SETOF apontamento_producao_parametrizacao
+            language sql
+            as
+            $$
+            select *
+            from apontamento_producao_parametrizacao
+            where inquilino = idinquilino
+            and (idfolha is null or id_folha = idfolha)
+            and ano_vigencia = extract(year from competencia)
+            and mes_vigencia = extract(month from competencia)
+            $$;
+
+            alter function fnc_buscar_parametrizacao(varchar, integer, date) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151620">
+        <comment>Criação da function fnc_buscar_parametrizacao_por_comp</comment>
+        <sql>
+            create function fnc_buscar_parametrizacao_por_comp(idfolha integer, mesvigencia integer, anovigencia integer) returns SETOF apontamento_producao_parametrizacao
+            language sql
+            as
+            $$
+            select *
+            from apontamento_producao_parametrizacao app
+            where id_folha = idfolha
+            and mes_vigencia = mesvigencia
+            and ano_vigencia = anovigencia
+            $$;
+
+            alter function fnc_buscar_parametrizacao_por_comp(integer, integer, integer) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151621">
+        <comment>Criação da function fnc_buscar_parametrizacao_por_id</comment>
+        <createProcedure>
+            create function fnc_buscar_parametrizacao_por_id(integer) returns SETOF apontamento_producao_parametrizacao
+            language sql
+            as
+            $$
+            select * from apontamento_producao_parametrizacao
+            where id = $1;
+            $$;
+
+            alter function fnc_buscar_parametrizacao_por_id(integer) owner to postgres;
+        </createProcedure>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151622">
+        <comment>Criação da function fnc_buscar_remuneracoes_contratados_por_folha</comment>
+        <sql>
+            <![CDATA[
+            create function fnc_buscar_remuneracoes_contratados_por_folha(idfolha integer, competencia date) returns SETOF remuneracao_contratado
+            language sql
+            as
+            $$
+            select *
+            from remuneracao_contratado
+            where folha = idfolha and concat(ano_vigencia, '-', mes_vigencia, '-01')::date <= competencia and data_criacao = (
+            select max(data_criacao)
+            from remuneracao_contratado ultima_remuneracao
+            where ultima_remuneracao.folha = remuneracao_contratado.folha
+            and ultima_remuneracao.contratado = remuneracao_contratado.contratado
+            )
+            $$;
+            ]]>
+
+            alter function fnc_buscar_remuneracoes_contratados_por_folha(integer, date) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151622">
+        <comment>Criação da function fnc_buscar_remuneracoes_contratados_por_folha</comment>
+        <sql>
+            <![CDATA[
+            create function fnc_buscar_remuneracoes_contratados_por_folha(idfolha integer, competencia date) returns SETOF remuneracao_contratado
+            language sql
+            as
+            $$
+            select *
+            from remuneracao_contratado
+            where folha = idfolha and concat(ano_vigencia, '-', mes_vigencia, '-01')::date <= competencia and data_criacao = (
+            select max(data_criacao)
+            from remuneracao_contratado ultima_remuneracao
+            where ultima_remuneracao.folha = remuneracao_contratado.folha
+            and ultima_remuneracao.contratado = remuneracao_contratado.contratado
+            )
+            $$;
+            ]]>
+
+            alter function fnc_buscar_remuneracoes_contratados_por_folha(integer, date) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151623">
+        <comment>Criação da function fnc_buscar_requisicoes</comment>
+        <sql>
+            create function fnc_buscar_requisicoes(idinquilino character varying, idfolha integer, comp date, tiporotina character varying) returns SETOF requisicao
+            language sql
+            as
+            $$
+            select *
+            from requisicao
+            where inquilino = idinquilino and
+            folha = idfolha and competencia = comp and tipo = tiporotina
+            order by data desc
+            $$;
+
+            alter function fnc_buscar_requisicoes(varchar, integer, date, varchar) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151624">
+        <comment>Criação da function fnc_gravar_requisicao</comment>
+        <createProcedure>
+            create function fnc_gravar_requisicao(idrequisicao integer, idinquilino character varying, idfolha integer, comp date, idtipo character varying, idstatus integer, datapagamento date)
+            returns TABLE(id integer)
+            language sql
+            as
+            $$
+            SET TIMEZONE TO 'America/Sao_Paulo';
+
+            INSERT INTO requisicao
+            (id,
+            inquilino,
+            folha,
+            competencia,
+            tipo,
+            status,
+            data_pagamento,
+            "data")
+            values (coalesce(idRequisicao, (select nextval('requisicao_id_seq'::regclass))),
+            idInquilino, idFolha, comp, idtipo, idstatus, dataPagamento, now() AT TIME ZONE 'America/Sao_Paulo')
+            on conflict (id)
+            do update set inquilino = excluded.inquilino,
+            folha                   = excluded.folha,
+            competencia             = excluded.competencia,
+            tipo                    = excluded.tipo,
+            status                  = excluded.status,
+            data_pagamento          = dataPagamento,
+            "data"                  = now() AT TIME ZONE 'America/Sao_Paulo'
+            returning id;
+            $$;
+
+            alter function fnc_gravar_requisicao(integer, varchar, integer, date, varchar, integer, date) owner to postgres;
+
+            create function fnc_gravar_requisicao(idrequisicao integer, idinquilino character varying, idfolha integer, comp date, idtipo character varying, idstatus integer, datapagamento date, obs character varying, datalimite timestamp without time zone)
+            returns TABLE(id integer)
+            language sql
+            as
+            $$
+            SET TIMEZONE TO 'America/Sao_Paulo';
+
+            INSERT INTO requisicao
+            (id,
+            inquilino,
+            folha,
+            competencia,
+            tipo,
+            status,
+            data_pagamento,
+            "data",
+            observacao,
+            data_limite)
+            values (coalesce(idRequisicao, (select nextval('requisicao_id_seq'::regclass))),
+            idInquilino, idFolha, comp, idtipo, idstatus, dataPagamento, now()::timestamp AT TIME ZONE 'America/Sao_Paulo', obs, datalimite)
+            on conflict (id)
+            do update set inquilino = excluded.inquilino,
+            folha                   = excluded.folha,
+            competencia             = excluded.competencia,
+            tipo                    = excluded.tipo,
+            status                  = excluded.status,
+            data_pagamento          = dataPagamento,
+            "data"                  = now()::timestamp AT TIME ZONE 'America/Sao_Paulo',
+            observacao                  = excluded.observacao,
+            data_limite                  = excluded.data_limite
+            returning id;
+            $$;
+
+            alter function fnc_gravar_requisicao(integer, varchar, integer, date, varchar, integer, date, varchar, timestamp) owner to postgres;
+        </createProcedure>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151625">
+        <comment>Criação da function fnc_existem_requisicoes_mensais_por_competencia</comment>
+        <sql>
+            create function fnc_existem_requisicoes_mensais_por_competencia(idinquilino character varying, idfolha integer, data_competencia date) returns boolean
+            language sql
+            as
+            $$
+            select count(*) > 0
+            from requisicao
+            join requisicao_mensal rm on requisicao.id = rm.requisicao
+            where inquilino = idinquilino and folha = idfolha and
+            competencia = data_competencia
+            $$;
+
+            alter function fnc_existem_requisicoes_mensais_por_competencia(varchar, integer, date) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151627">
+        <comment>Criação da function fnc_gravar_remuneracao_contratado</comment>
+        <sql>
+            create function fnc_gravar_remuneracao_contratado(var_inquilino character varying, int_folha integer, int_contratado integer, num_valor_hora numeric, num_remuneracao_base numeric, int_ano_vig integer, int_mes_vig integer, var_criado_por character varying)
+            returns TABLE(id integer)
+            language sql
+            as
+            $$
+            insert into remuneracao_contratado as vh (inquilino, folha, contratado, valor_hora, remuneracao_base, ano_vigencia, mes_vigencia, criado_por)
+            values (var_inquilino, int_folha, int_contratado, num_valor_hora, num_remuneracao_base, int_ano_vig, int_mes_vig, var_criado_por)
+            returning id
+            $$;
+
+            alter function fnc_gravar_remuneracao_contratado(varchar, integer, integer, numeric, numeric, integer, integer, varchar) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151628">
+        <comment>Criação da function fnc_gravar_requisicao_adiantamento</comment>
+        <createProcedure>
+            create function fnc_gravar_requisicao_adiantamento(idrequisicao integer, idcontratado integer, val_variavel numeric, val_ajuda_custo numeric, val_reembolso numeric, val_adiantamento numeric)
+            returns TABLE(id integer)
+            language sql
+            as
+            $$
+            INSERT INTO requisicao_adiantamento
+            (requisicao, contratado, variavel, ajuda_custo, reembolso, adiantamento)
+            values (idRequisicao, idcontratado, val_variavel, val_ajuda_custo, val_reembolso, val_adiantamento)
+            on conflict (requisicao, contratado)
+            do update set variavel = val_variavel,
+            ajuda_custo            = val_ajuda_custo,
+            reembolso              = val_reembolso,
+            adiantamento           = val_adiantamento
+            returning id;
+            $$;
+
+            alter function fnc_gravar_requisicao_adiantamento(integer, integer, numeric, numeric, numeric, numeric) owner to postgres;
+        </createProcedure>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151629">
+        <comment>Criação da function fnc_gravar_remuneracao_contratado</comment>
+        <createProcedure>
+            create function fnc_gravar_remuneracao_contratado(var_inquilino character varying, int_folha integer, int_contratado integer, num_valor_hora numeric, num_remuneracao_base numeric, num_horista_mensalista integer, int_ano_vig integer, int_mes_vig integer, var_criado_por character varying)
+            returns TABLE(id integer)
+            language sql
+            as
+            $$
+            insert into remuneracao_contratado as vh (inquilino, folha, contratado, valor_hora, remuneracao_base, horista_mensalista, ano_vigencia, mes_vigencia, criado_por)
+            values (var_inquilino, int_folha, int_contratado, num_valor_hora, num_remuneracao_base, num_horista_mensalista, int_ano_vig, int_mes_vig, var_criado_por)
+            returning id
+            $$;
+
+            alter function fnc_gravar_remuneracao_contratado(varchar, integer, integer, numeric, numeric, integer, integer, integer, varchar) owner to postgres;
+        </createProcedure>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151630">
+        <comment>Criação da function fnc_gravar_requisicao_mensal</comment>
+        <createProcedure>
+            create function fnc_gravar_requisicao_mensal(idrequisicao integer, idcontratado integer, val_horista_mensalista integer, val_dias_trabalhados numeric, val_base_hora numeric, val_valor_hora numeric, val_producao numeric, val_variavel numeric, val_ajuda_custo numeric, val_reembolso numeric, val_total_rendimentos numeric, val_descontos_diversos numeric, val_adiantamento numeric, val_total_debitos numeric, val_liquido numeric)
+            returns TABLE(id integer)
+            language sql
+            as
+            $$
+            INSERT INTO requisicao_mensal
+            (requisicao, contratado,
+            horista_mensalista,
+            dias_trabalhados,
+            base_hora,
+            valor_hora,
+            producao,
+            variavel,
+            ajuda_custo,
+            reembolso,
+            total_rendimentos,
+            descontos_diversos,
+            adiantamento,
+            total_debitos,
+            liquido)
+            values (idRequisicao, idcontratado,
+            val_horista_mensalista,
+            val_dias_trabalhados,
+            val_base_hora,
+            val_valor_hora,
+            val_producao,
+            val_variavel,
+            val_ajuda_custo,
+            val_reembolso,
+            val_total_rendimentos,
+            val_descontos_diversos,
+            val_adiantamento,
+            val_total_debitos,
+            val_liquido)
+            on conflict (requisicao, contratado)
+            do update set
+            horista_mensalista = val_horista_mensalista,
+            dias_trabalhados = val_dias_trabalhados,
+            base_hora                      = val_base_hora,
+            valor_hora                     = val_valor_hora,
+            producao                       = val_producao,
+            variavel                       = val_variavel,
+            ajuda_custo                    = val_ajuda_custo,
+            reembolso                      = val_reembolso,
+            total_rendimentos              = val_total_rendimentos,
+            descontos_diversos             = val_descontos_diversos,
+            adiantamento                   = val_adiantamento,
+            total_debitos                  = val_total_debitos,
+            liquido                        = val_liquido
+            returning id;
+            $$;
+
+            alter function fnc_gravar_requisicao_mensal(integer, integer, integer, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric) owner to postgres;
+        </createProcedure>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151631">
+        <comment>Criação da function fnc_buscar_ultima_parametrizacao_por_folha</comment>
+        <sql>
+            <![CDATA[
+            create function fnc_buscar_ultima_parametrizacao_por_folha(idfolha integer, _competencia date) returns SETOF apontamento_producao_parametrizacao
+            language sql
+            as
+            $$
+            select
+            *
+            from
+            apontamento_producao_parametrizacao app
+            where
+            app.id_folha = idfolha
+            and format('%s-%s-%s', ano_vigencia, mes_vigencia, 01)::date =
+            (
+            select max(format('%s-%s-%s', ano_vigencia, mes_vigencia, 01)::date)
+            from apontamento_producao_parametrizacao appf
+            where appf.id_folha = app.id_folha
+            and format('%s-%s-%s', ano_vigencia, mes_vigencia, 01)::date <= _competencia
+            )
+            $$;
+            ]]>
+
+            alter function fnc_buscar_ultima_parametrizacao_por_folha(integer, date) owner to postgres;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151632">
+        <comment>Criação da procedure proc_gravar_apontamento_producao_parametrizar</comment>
+        <createProcedure>
+            create procedure proc_gravar_apontamento_producao_parametrizar(idpk integer, p_inquilino character varying, idfolha integer, p_nome character varying, mesvigencia integer, anovigencia integer, adiantamentoauto boolean, adiantamentoautovalor numeric, ajudacustoauto boolean, ajudacustovalor numeric, atualcompap boolean, atualcompapqtddias numeric, apresentarcoopafast boolean, apresentarcoopafastcompetencias integer, mensaproporremuadmissao boolean, horisproporremuadmissao boolean, basehora numeric, exibeparamapontamento boolean, adiantamentoautoidtipo integer, ajudacustoidtipo integer, emailalerta character varying, emailalertaadm character varying, alertapedidosup boolean, alertapedidosupvalor numeric)
+            language sql
+            as
+            $$
+            INSERT INTO apontamento_producao_parametrizacao
+            (id,
+            inquilino,
+            id_folha,
+            nome,
+            mes_vigencia,
+            ano_vigencia,
+            adiantamento_auto,
+            adiantamento_auto_valor,
+            ajuda_custo_auto,
+            ajuda_custo_valor,
+            atual_comp_ap,
+            atual_comp_ap_qtd_dias,
+            apresentar_coop_afast,
+            apresentar_coop_afast_competencias,
+            mensa_propor_remu_admissao,
+            horis_propor_remu_admissao,
+            "data",
+            base_hora,
+            exibe_param_apontamento,
+            adiantamento_auto_id_tipo,
+            ajuda_custo_id_tipo,
+            email_alerta,
+            email_alerta_adm,
+            alerta_pedido_sup_inf,
+            alerta_pedido_sup_inf_valor)
+            VALUES(
+            coalesce(idpk,(select nextval('requisicao_id_seq'::regclass))),
+            p_inquilino,
+            idFolha,
+            p_nome,
+            mesVigencia,
+            anoVigencia,
+            adiantamentoAuto,
+            adiantamentoAutoValor,
+            ajudaCustoAuto,
+            ajudaCustoValor,
+            atualCompAp,
+            atualCompApQtdDias,
+            apresentarCoopAfast,
+            apresentarcoopafastcompetencias,
+            mensaProporRemuAdmissao,
+            horisProporRemuAdmissao,
+            now(),
+            basehora,
+            exibeParamApontamento,
+            adiantamentoAutoIdTipo,
+            ajudaCustoIdTipo,
+            emailAlerta,
+            emailAlertaAdm,
+            alertaPedidoSup,
+            alertaPedidoSupValor)
+            on conflict (id)
+            do update set
+            nome = excluded.nome,
+            mes_vigencia = excluded.mes_vigencia,
+            ano_vigencia = excluded.ano_vigencia,
+            adiantamento_auto = excluded.adiantamento_auto,
+            adiantamento_auto_valor = excluded.adiantamento_auto_valor,
+            ajuda_custo_auto = excluded.ajuda_custo_auto,
+            ajuda_custo_valor = excluded.ajuda_custo_valor,
+            atual_comp_ap = excluded.atual_comp_ap,
+            atual_comp_ap_qtd_dias = excluded.atual_comp_ap_qtd_dias,
+            apresentar_coop_afast = excluded.apresentar_coop_afast,
+            apresentar_coop_afast_competencias = excluded.apresentar_coop_afast_competencias,
+            mensa_propor_remu_admissao = excluded.mensa_propor_remu_admissao,
+            horis_propor_remu_admissao = excluded.horis_propor_remu_admissao,
+            "data" = now()::timestamp AT TIME ZONE 'America/Sao_Paulo',
+            base_hora = excluded.base_hora,
+            exibe_param_apontamento = excluded.exibe_param_apontamento,
+            adiantamento_auto_id_tipo = excluded.adiantamento_auto_id_tipo,
+            ajuda_custo_id_tipo = excluded.ajuda_custo_id_tipo,
+            email_alerta = excluded.email_alerta,
+            email_alerta_adm = excluded.email_alerta_adm,
+            alerta_pedido_sup_inf = excluded.alerta_pedido_sup_inf,
+            alerta_pedido_sup_inf_valor = excluded.alerta_pedido_sup_inf_valor;
+            $$;
+
+            alter procedure proc_gravar_apontamento_producao_parametrizar(integer, varchar, integer, varchar, integer, integer, boolean, numeric, boolean, numeric, boolean, numeric, boolean, integer, boolean, boolean, numeric, boolean, integer, integer, varchar, varchar, boolean, numeric) owner to postgres;
+        </createProcedure>
+    </changeSet>
+
+    <changeSet author="rodrigo_rmsouza" id="202203151633">
+        <comment>Criação da function fnc_gravar_requisicao</comment>
+        <createProcedure>
+            create function fnc_gravar_requisicao(idrequisicao integer, idinquilino character varying, idfolha integer, comp date, idtipo character varying, idstatus integer, datapagamento date, obs character varying, datalimite timestamp without time zone, dataprevista date, descricao character varying)
+            returns TABLE(id integer)
+            language sql
+            as
+            $$
+            INSERT INTO requisicao
+            (id,
+            inquilino,
+            folha,
+            competencia,
+            tipo,
+            status,
+            data_pagamento,
+            "data",
+            observacao,
+            data_limite,
+            data_prevista,
+            descricao)
+            values (coalesce(idRequisicao, (select nextval('requisicao_id_seq'::regclass))),
+            idInquilino, idFolha, comp, idtipo, idstatus, dataPagamento, now()::timestamp AT TIME ZONE 'America/Sao_Paulo', obs, datalimite, dataprevista, descricao)
+            on conflict (id)
+            do update set inquilino = excluded.inquilino,
+            folha                   = excluded.folha,
+            competencia             = excluded.competencia,
+            tipo                    = excluded.tipo,
+            status                  = excluded.status,
+            data_pagamento          = excluded.data_pagamento,
+            "data"                  = now()::timestamp AT TIME ZONE 'America/Sao_Paulo',
+            observacao                  = excluded.observacao,
+            data_limite                  = excluded.data_limite,
+            data_prevista          = excluded.data_prevista,
+            descricao              = excluded.descricao
+            returning id;
+            $$;
+
+            alter function fnc_gravar_requisicao(integer, varchar, integer, date, varchar, integer, date, varchar, timestamp, date, varchar) owner to postgres;
+        </createProcedure>
+    </changeSet>
+
+</databaseChangeLog>

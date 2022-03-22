@@ -1,0 +1,6 @@
+rootProject.name = '4bee-fopag-coop'
+
+if(file("../fopag-v2-backend-core").exists()) {
+    include ":4bee-fopag-utilitarios"
+    project(":4bee-fopag-utilitarios").projectDir = file("../fopag-v2-backend-core")
+}
